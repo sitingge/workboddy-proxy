@@ -1,0 +1,43 @@
+{
+  "listen": {
+    "host": "0.0.0.0",
+    "port": 8790,
+    "publicBaseUrl": "",
+    "lanBaseUrl": "",
+    "trustedOrigins": []
+  },
+  "apiKeys": [],
+  "cli": {
+    "nodeExe": "",
+    "cliJs": "",
+    "cwd": "",
+    "verbose": true,
+    "allowTools": false,
+    "allowedTools": "",
+    "systemPrompt": "",
+    "model": ""
+  },
+  "sites": {
+    "mode": "cn",
+    "cn": {
+      "cliJs": "",
+      "home": "",
+      "model": ""
+    },
+    "intl": {
+      "cliJs": "",
+      "home": "",
+      "model": ""
+    }
+  },
+  "sessions": {
+    "maxWorkers": 4,
+    "idleMs": 1800000,
+    "turnTimeoutMs": 900000,
+    "keepAliveHintMs": 15000,
+    "prewarm": true
+  },
+  "models": [
+    "workbuddy-auto"
+  ]
+}
