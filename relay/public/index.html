@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>wb-relay 控制台</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2a2f3a;
+    --fg:#e6e9ef; --dim:#98a1b3; --accent:#4c8dff; --ok:#3ecf8e; --warn:#ffb020; --danger:#ff5c5c;
+    --radius:10px;
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --bg:#f5f6f8; --panel:#fff; --panel2:#f0f2f5; --line:#dfe3ea; --fg:#1b1f27; --dim:#5d6675; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:14px/1.6 -apple-system,"Segoe UI","Microsoft YaHei",system-ui,sans-serif}
+  a{color:var(--accent)}
+  code,.mono{font-family:ui-monospace,Consolas,"Cascadia Mono",monospace}
+  .wrap{max-width:1080px;margin:0 auto;padding:20px 16px 60px}
+  header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:18px}
+  h1{font-size:18px;margin:0;font-weight:650;letter-spacing:.3px}
+  h2{font-size:15px;margin:0 0 12px;font-weight:600}
+  .grow{flex:1}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;
+    background:var(--panel2);border:1px solid var(--line);font-size:12px;color:var(--dim)}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+  .dot.off{background:var(--danger)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+  .card.warn{border-color:#5a4320}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+  label.f{display:block;font-size:12px;color:var(--dim);margin-bottom:5px}
+  input[type=text],input[type=number],input[type=password],select,textarea{
+    width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--fg);font-size:13px;font-family:inherit}
+  textarea{min-height:76px;resize:vertical;font-family:ui-monospace,Consolas,monospace}
+  button{padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);
+    color:var(--fg);font-size:13px;cursor:pointer;font-family:inherit}
+  button:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  button.danger{color:var(--danger);border-color:#5a2a2a}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .switch{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);
+    border-radius:8px;background:var(--panel2)}
+  .switch .txt{flex:1}
+  .switch small{display:block;color:var(--dim);font-size:12px}
+  .toggle{position:relative;width:44px;height:24px;flex:none}
+  .toggle input{opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+  .track{position:absolute;inset:0;background:var(--line);border-radius:999px;transition:.15s}
+  .knob{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.15s}
+  .toggle input:checked ~ .track{background:var(--danger)}
+  .toggle input:checked ~ .knob{transform:translateX(20px)}
+  .tools{max-height:230px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--panel2)}
+  .tgroup{margin-bottom:10px}
+  .tgroup > .th{font-size:12px;color:var(--dim);margin-bottom:6px;display:flex;gap:6px;align-items:center}
+  .tlist{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:7px;
+    border:1px solid var(--line);background:var(--panel);cursor:pointer;font-size:12.5px;user-select:none}
+  .chip input{margin:0;accent-color:var(--accent)}
+  .chip.dangerous{border-color:#5a2a2a}
+  .chip.dangerous.on{background:#331a1a}
+  .chip.on{border-color:var(--accent);background:#16233d}
+  @media (prefers-color-scheme: light){ .chip.on{background:#e8f0ff} .chip.dangerous.on{background:#ffeaea} }
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--dim);font-weight:500;font-size:12px}
+  /* 模型表里除了「模型」列，其它列都是短值，别让它们折行 */
+  #mlist th, #mlist td:nth-child(n+3){white-space:nowrap}
+  #slist th, #slist td{white-space:nowrap}
+  tr:last-child td{border-bottom:none}
+  .badge{display:inline-block;padding:1px 7px;border-radius:5px;font-size:11px;
+    background:var(--panel2);border:1px solid var(--line);color:var(--dim);margin-right:4px}
+  .badge.ok{color:var(--ok);border-color:#1f4a37}
+  .badge.warn{color:var(--warn);border-color:#5a4320}
+  .badge.danger{color:var(--danger);border-color:#5a2a2a}
+  .muted{color:var(--dim);font-size:12.5px}
+  .hint{color:var(--warn);font-size:12.5px}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);padding:10px 18px;border-radius:9px;
+    background:#0b1220;color:#fff;border:1px solid var(--line);opacity:0;transition:.2s;pointer-events:none;max-width:90vw}
+  .toast.show{opacity:1}
+  details summary{cursor:pointer;color:var(--dim);font-size:12.5px}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13px}
+  .kv div:nth-child(odd){color:var(--dim)}
+  .scroll{max-height:340px;overflow:auto}
+  .filterbar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .filterbar input,.filterbar select{max-width:220px}
+  .saved{color:var(--ok)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>wb-relay 控制台</h1>
+    <span class="pill"><span class="dot" id="dot"></span><span id="status">连接中…</span></span>
+    <span class="grow"></span>
+    <input type="password" id="apikey" placeholder="访问密钥（如已设置）" style="max-width:210px">
+    <button id="refresh">刷新</button>
+  </header>
+
+  <div class="card">
+    <h2>运行状态</h2>
+    <div class="kv" id="info"></div>
+    <div class="row" style="margin-top:14px">
+      <button id="relocate">重新查找 WorkBuddy 路径</button>
+      <span class="muted" id="relocateMsg">程序启动时会自动定位并记住路径；路径失效了会自动重新遍历，不用手动点。</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>权限与模型</h2>
+
+    <div class="switch" style="margin-bottom:14px">
+      <div class="txt">
+        <strong>放开工具权限</strong>
+        <small>关闭时模型只能纯聊天。打开后它对<strong>所有调用方</strong>都能读写文件、执行命令 —— 等于把这台机器交出去，确认再开。</small>
+      </div>
+      <label class="toggle"><input type="checkbox" id="allowTools"><span class="track"></span><span class="knob"></span></label>
+    </div>
+
+    <div id="toolsBox" style="display:none;margin-bottom:14px">
+      <div class="row" style="margin-bottom:8px">
+        <label class="f" style="margin:0">允许哪些工具（不勾 = 全部放开）</label>
+        <span class="grow"></span>
+        <button data-preset="readonly">只读</button>
+        <button data-preset="edit">常用读写</button>
+        <button data-preset="full">全开</button>
+        <button data-preset="none">全不选</button>
+      </div>
+      <div class="tools" id="tools"></div>
+      <div class="muted" id="toolsEcho" style="margin-top:8px"></div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <label class="f">默认模型（客户端不指定时用它）</label>
+        <select id="model"><option value="">跟随请求 / 交给 WorkBuddy 自动选</option></select>
+        <div class="muted" id="modelInfo" style="margin-top:6px"></div>
+      </div>
+      <div>
+        <label class="f">追加到模型列表的别名（逗号分隔）</label>
+        <input type="text" id="extraModels" placeholder="workbuddy-auto">
+        <div class="muted" style="margin-top:6px">第三方拉取 /v1/models 时会看到下面全部模型，这些别名会排在最后。</div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:14px">
+      <button class="primary" id="save">保存设置</button>
+      <span class="muted" id="saveMsg"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>全部可用模型 <span class="muted" id="catalogMeta"></span></h2>
+    <div class="filterbar">
+      <input type="text" id="msearch" placeholder="搜索模型名 / id">
+      <select id="mkind">
+        <option value="">全部类型</option>
+        <option value="chat">对话</option>
+        <option value="completion">补全专用</option>
+        <option value="image">图像</option>
+        <option value="video">视频</option>
+      </select>
+      <span class="grow"></span>
+      <button id="pullModels">拉取最新模型</button>
+      <button id="copyList">复制全部模型名</button>
+    </div>
+    <div class="muted" id="catalogFresh" style="margin-bottom:6px"></div>
+    <div class="muted" id="pullMsg" style="margin-bottom:10px"></div>
+    <div class="scroll"><table>
+      <thead><tr><th>模型</th><th>id</th><th>类型</th><th>积分</th><th>上下文</th><th>能力</th></tr></thead>
+      <tbody id="mlist"></tbody>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <h2>活跃会话</h2>
+    <div class="muted" style="margin-bottom:10px">一段会话 = 一个常驻进程。改了上面的设置后，已存在的会话仍按旧设置跑，清掉它才会用新设置重建。</div>
+    <table>
+      <thead><tr><th>会话</th><th>模型</th><th>轮数</th><th>空闲</th><th>状态</th><th></th></tr></thead>
+      <tbody id="slist"></tbody>
+    </table>
+    <div class="row" style="margin-top:12px">
+      <button class="danger" id="clearAll">清空全部会话</button>
+      <span class="muted">调用方传 x-wb-session 或 user 字段就能分开不同会话</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>高级</h2>
+    <div class="grid">
+      <div>
+        <label class="f">系统提示词（追加到会话开头，仅新会话生效）</label>
+        <textarea id="systemPrompt" placeholder="例如：你是一个只会中文回答的助手"></textarea>
+      </div>
+      <div>
+        <label class="f">最大并行会话数</label>
+        <input type="number" id="maxWorkers" min="1" max="16">
+        <label class="f" style="margin-top:10px">空闲回收（分钟）</label>
+        <input type="number" id="idleMin" min="1" max="1440">
+        <label class="f" style="margin-top:10px">单轮超时（分钟）</label>
+        <input type="number" id="turnMin" min="1" max="120">
+      </div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="primary" id="save2">保存设置</button>
+      <span class="muted" id="saveMsg2"></span>
+    </div>
+    <details style="margin-top:14px">
+      <summary>这些改完需要重启程序才生效</summary>
+      <div class="muted" style="margin-top:8px" id="restartOnly"></div>
+    </details>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let state = null;
+
+function key(){ return $('apikey').value.trim(); }
+function headers(json){
+  const h = { 'x-wb-relay':'1' };
+  if (key()) h['x-api-key'] = key();
+  if (json) h['content-type'] = 'application/json';
+  return h;
+}
+function toast(msg, bad){
+  const t = $('toast');
+  t.textContent = msg;
+  t.style.borderColor = bad ? 'var(--danger)' : 'var(--line)';
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 3200);
+}
+async function api(path, opts){
+  const r = await fetch(path, opts);
+  const txt = await r.text();
+  let j = null; try { j = JSON.parse(txt); } catch {}
+  if (!r.ok) throw new Error((j && j.error && j.error.message) || ('HTTP ' + r.status + ' ' + txt.slice(0,200)));
+  return j;
+}
+
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtIdle = (ms) => { const s = Math.floor(ms/1000); return s < 60 ? s + ' 秒' : (Math.floor(s/60) + ' 分 ' + (s%60) + ' 秒'); };
+const fmtAge = (ms) => {
+  if (ms == null) return '未知';
+  const s = Math.max(0, Math.floor(ms / 1000));
+  if (s < 60) return s + ' 秒前';
+  if (s < 3600) return Math.floor(s / 60) + ' 分钟前';
+  if (s < 86400) return Math.floor(s / 3600) + ' 小时前';
+  return Math.floor(s / 86400) + ' 天前';
+};
+const km = (n) => n ? (n >= 10000 ? Math.round(n/1000) + 'k' : String(n)) : '—';
+
+const TOOL_HINT = {
+  'readonly': ['Read','Glob','Grep','WebFetch','WebSearch','TaskList','TaskGet','TaskOutput','TaskStop','ListMcpResources','ReadMcpResource','ToolSearch','AskUserQuestion','ExitPlanMode'],
+  'edit': ['Read','Write','Edit','Glob','Grep','WebFetch','WebSearch'],
+};
+
+async function load(){
+  try{
+    state = await api('/api/state', { headers: headers() });
+  }catch(e){
+    $('dot').classList.add('off');
+    $('status').textContent = '连不上：' + e.message;
+    return;
+  }
+  $('dot').classList.remove('off');
+  const c = state.catalog;
+  $('status').textContent = '运行中 v' + state.version;
+
+  const s = state.config;
+  $('info').innerHTML = [
+    ['监听地址', '<code>' + esc(state.listen.host + ':' + state.listen.port) + '</code>'],
+    ['鉴权', state.authRequired ? '<span class="badge warn">已开启</span>' : '<span class="badge">本机未设密钥</span>'],
+    ['工具权限', s.cli.allowTools ? '<span class="badge danger">已放开</span>' : '<span class="badge ok">未放开（纯问答）</span>'],
+    ['CLI', '<code>' + esc(state.cliPath) + '</code>'],
+    ['CLI 来源', esc((state.locate && state.locate.source) || '未记录') +
+      (state.locate && state.locate.userOverride ? ' <span class="badge">配置里手写</span>' : '')],
+    ['工作目录', '<code>' + esc(state.cwd) + '</code>'],
+    ['模型来源', esc(c.source) + (c.customCount ? '（含 ' + c.customCount + ' 个自定义）' : '')],
+    ['模型总数', c.counts.total + ' 个：对话 ' + c.counts.chat + '、补全 ' + c.counts.completion +
+      '、图像 ' + c.counts.image + '、视频 ' + c.counts.video],
+    ['已运行', Math.floor(state.uptime) + ' 秒'],
+  ].map(([k,v]) => '<div>' + k + '</div><div>' + v + '</div>').join('');
+
+  // 表单（只在首次填充，避免刷新把用户正在编辑的内容冲掉）
+  if (!load.filled){
+    $('allowTools').checked = !!s.cli.allowTools;
+    // 必须把已保存的工具选择回填，否则刷新后显示成「一个都没勾」，
+    // 这时点保存会把白名单清空 —— 而空白的语义是「什么都不给」，等于悄悄改了权限
+    load.pickedTools = s.cli.allowedTools || '';
+    $('systemPrompt').value = s.cli.systemPrompt || '';
+    $('extraModels').value = (state.config.models || []).join(', ');
+    $('maxWorkers').value = s.sessions.maxWorkers;
+    $('idleMin').value = Math.round(s.sessions.idleMs / 60000);
+    $('turnMin').value = Math.round(s.sessions.turnTimeoutMs / 60000);
+    load.filled = true;
+  }
+  $('restartOnly').innerHTML = state.restartOnly.map((x) => '· ' + esc(x)).join('<br>');
+
+  // 模型下拉只列能对话的；补全/图像模型选了也答不了话，放在下面的表里看就行
+  const sel = $('model');
+  const chatModels = c.models.filter((m) => m.kind === 'chat');
+  if (sel.dataset.n !== String(chatModels.length) || load.modelVal !== s.cli.model){
+    let opts = chatModels.map((m) => '<option value="' + esc(m.id) + '">' + esc(m.name + '  (' + m.id + ')') + '</option>').join('');
+    // 配置里手填了非对话模型也要显示出来，否则下拉会静默变成空
+    if (s.cli.model && !chatModels.some((m) => m.id === s.cli.model)) {
+      opts = '<option value="' + esc(s.cli.model) + '">' + esc(s.cli.model + '（不在对话模型里）') + '</option>' + opts;
+    }
+    sel.innerHTML = '<option value="">跟随请求 / 交给 WorkBuddy 自动选</option>' + opts;
+    sel.value = s.cli.model || '';
+    sel.dataset.n = chatModels.length;
+    load.modelVal = s.cli.model;
+    showModelInfo();
+  }
+
+  const q = $('msearch').value.trim().toLowerCase();
+  const kind = $('mkind').value;
+  const shown = c.models.filter((m) =>
+    (!kind || m.kind === kind) &&
+    (!q || m.id.toLowerCase().includes(q) || m.name.toLowerCase().includes(q)));
+  $('catalogMeta').textContent = '（' + shown.length + ' / ' + c.models.length + '）';
+
+  // 说清楚「新不新」到底卡在哪一层：程序读清单的时间，和 WorkBuddy 自己那份配置文件的更新时间
+  const now = Date.now();
+  $('catalogFresh').textContent = '清单读取于 ' + fmtAge(now - c.loadedAt) +
+    '　·　WorkBuddy 的配置文件更新于 ' + (c.sourceMtime ? fmtAge(now - c.sourceMtime) : '未知') +
+    '　·　来源：' + c.source;
+  $('catalogFresh').title = c.sourceFile || '';
+  $('pullModels').title = '立刻重读一次；如果 WorkBuddy 那份文件本身没更新，读到的还是旧的';
+  $('mlist').innerHTML = shown.map((m) => {
+    const caps = [];
+    if (m.supportsTools) caps.push('<span class="badge ok">工具</span>');
+    if (m.supportsImages) caps.push('<span class="badge ok">图片</span>');
+    if (m.supportsReasoning) caps.push('<span class="badge">推理</span>');
+    if (m.isDefault) caps.push('<span class="badge warn">默认</span>');
+    if (m.recommended) caps.push('<span class="badge warn">官方推荐</span>');
+    if (m.source === 'custom') caps.push('<span class="badge">自定义</span>');
+    const kindName = { chat:'对话', completion:'补全', image:'图像', video:'视频' }[m.kind] || m.kind;
+    return '<tr><td>' + esc(m.name) + (m.description ? '<div class="muted">' + esc(m.description) + '</div>' : '') + '</td>' +
+      '<td class="mono">' + esc(m.id) + '</td><td>' + kindName + '</td><td class="mono">' + esc(m.credits || '—') + '</td>' +
+      '<td class="mono">' + km(m.contextLength) + '</td><td>' + (caps.join('') || '<span class="muted">—</span>') + '</td></tr>';
+  }).join('');
+
+  // 会话表
+  $('slist').innerHTML = state.sessions.length ? state.sessions.map((w) =>
+    '<tr><td class="mono">' + esc(w.session) + '</td><td class="mono">' + esc(w.model || 'auto') + '</td>' +
+    '<td>' + w.turns + '</td><td>' + fmtIdle(w.idleMs) + '</td>' +
+    '<td>' + (w.busy ? '<span class="badge warn">忙</span>' : '<span class="badge ok">空闲</span>') + '</td>' +
+    '<td><button class="danger" data-kill="' + esc(w.id) + '">清空</button></td></tr>').join('')
+    : '<tr><td colspan="6" class="muted">还没有活跃会话，等第一次调用</td></tr>';
+
+  renderTools();
+  $('toolsBox').style.display = $('allowTools').checked ? '' : 'none';
+}
+
+function renderTools(){
+  if (!state) return;
+  const picked = (load.pickedTools || '').split(',').map((x)=>x.trim()).filter(Boolean);
+  load.pickedTools = picked.join(',');
+  const groups = {};
+  for (const t of state.tools){ (groups[t.group] ||= []).push(t); }
+  const order = ['只读 / 安全','会改文件','执行命令 / 危险','其它'];
+  let html = '';
+  for (const g of order){
+    if (!groups[g]) continue;
+    html += '<div class="tgroup"><div class="th">' + esc(g) + (g.includes('危险') ? ' <span class="badge danger">慎选</span>' : '') + '</div><div class="tlist">' +
+      groups[g].map((t) => {
+        const on = picked.includes(t.name);
+        const dg = g.includes('危险') ? ' dangerous' : '';
+        return '<label class="chip' + dg + (on ? ' on' : '') + '"><input type="checkbox" value="' + esc(t.name) + '"' +
+          (on ? ' checked' : '') + '>' + esc(t.name) + '</label>';
+      }).join('') + '</div></div>';
+  }
+  const box = $('tools');
+  if (box.dataset.sig !== html){ box.innerHTML = html; box.dataset.sig = html; }
+  $('toolsEcho').textContent = picked.length
+    ? '已选：' + picked.join(', ')
+    : '一个都不勾 = 什么工具都不给（模型只能纯聊天）。要全放开设成「全开」。';
+}
+
+function showModelInfo(){
+  if (!state) return;
+  const m = state.catalog.models.find((x) => x.id === $('model').value);
+  $('modelInfo').textContent = m
+    ? [m.name, m.kind === 'chat' ? '对话' : m.kind, m.credits || '', km(m.contextLength) + ' 上下文'].filter(Boolean).join(' · ')
+    : '不指定，WorkBuddy 自己按任务挑';
+}
+
+function collect(){
+  const picked = [...$('tools').querySelectorAll('input:checked')].map((i) => i.value);
+  load.pickedTools = picked.join(',');
+  return {
+    cli: {
+      allowTools: $('allowTools').checked,
+      allowedTools: picked.join(','),
+      systemPrompt: $('systemPrompt').value,
+      model: $('model').value,
+    },
+    sessions: {
+      maxWorkers: Number($('maxWorkers').value) || 4,
+      idleMs: (Number($('idleMin').value) || 30) * 60000,
+      turnTimeoutMs: (Number($('turnMin').value) || 15) * 60000,
+    },
+    models: $('extraModels').value.split(',').map((x) => x.trim()).filter(Boolean),
+  };
+}
+
+async function save(btn, msgEl){
+  btn.disabled = true;
+  try{
+    const r = await api('/api/config', { method:'POST', headers: headers(true), body: JSON.stringify(collect()) });
+    msgEl.textContent = r.activeSessions.length
+      ? '已保存。有 ' + r.activeSessions.length + ' 个旧会话仍在按旧设置跑，点下面「清空全部会话」让新设置生效。'
+      : '已保存并生效。';
+    msgEl.className = 'saved';
+    load.filled = false;
+    await load();
+  }catch(e){
+    msgEl.textContent = '保存失败：' + e.message;
+    msgEl.className = 'hint';
+  }finally{ btn.disabled = false; }
+}
+
+$('allowTools').addEventListener('change', () => {
+  $('toolsBox').style.display = $('allowTools').checked ? '' : 'none';
+});
+$('tools').addEventListener('change', (e) => {
+  if (e.target.tagName === 'INPUT'){
+    const label = e.target.closest('.chip');
+    if (label) label.classList.toggle('on', e.target.checked);
+  }
+  renderTools();
+});
+document.querySelectorAll('[data-preset]').forEach((b) => b.addEventListener('click', () => {
+  const p = b.dataset.preset;
+  const names = p === 'full' ? state.tools.map((t) => t.name) : p === 'none' ? [] : (TOOL_HINT[p] || []);
+  $('tools').querySelectorAll('input').forEach((i) => {
+    i.checked = names.includes(i.value);
+    const label = i.closest('.chip'); if (label) label.classList.toggle('on', i.checked);
+  });
+  load.pickedTools = names.join(',');
+  $('toolsEcho').textContent = names.length ? '已选：' + names.join(', ') : '一个都不勾 = 放开全部工具';
+}));
+$('model').addEventListener('change', showModelInfo);
+$('msearch').addEventListener('input', () => load());
+$('mkind').addEventListener('change', () => load());
+$('refresh').addEventListener('click', () => { load.filled = false; load(); });
+$('save').addEventListener('click', () => save($('save'), $('saveMsg')));
+$('save2').addEventListener('click', () => save($('save2'), $('saveMsg2')));
+$('pullModels').addEventListener('click', async () => {
+  const btn = $('pullModels');
+  btn.disabled = true;
+  $('pullMsg').textContent = '正在重新读取模型清单…';
+  $('pullMsg').className = 'muted';
+  try{
+    const r = await api('/api/models/refresh', { method:'POST', headers: headers(true), body: '{}' });
+    const fileNote = r.fileAgeMs != null ? '（WorkBuddy 配置文件 ' + fmtAge(r.fileAgeMs) + '更新）' : '';
+    $('pullMsg').textContent = r.changed
+      ? '读到 ' + r.count + ' 个模型，有变化：新增 [' + (r.added.join(', ') || '无') + ']，移除 [' + (r.removed.join(', ') || '无') + '] ' + fileNote
+      : '读到 ' + r.count + ' 个模型，和上次完全一样 ' + fileNote +
+        '。如果这个时间很久以前，说明 WorkBuddy 自己还没刷新云端配置 —— 打开一次它的模型选择器，或重启 WorkBuddy。';
+    $('pullMsg').className = r.changed ? 'saved' : 'muted';
+    await load();
+  }catch(e){
+    $('pullMsg').textContent = '拉取失败：' + e.message;
+    $('pullMsg').className = 'hint';
+  }finally{ btn.disabled = false; }
+});
+
+$('copyList').addEventListener('click', async () => {
+  const txt = state.catalog.models.map((m) => m.id).join('\n');
+  try { await navigator.clipboard.writeText(txt); toast('已复制 ' + state.catalog.models.length + ' 个模型名'); }
+  catch { toast('复制失败，请手动全选表格', true); }
+});
+$('slist').addEventListener('click', async (e) => {
+  const id = e.target.dataset && e.target.dataset.kill;
+  if (!id) return;
+  e.target.disabled = true;
+  try { await api('/api/sessions', { method:'POST', headers: headers(true), body: JSON.stringify({ id }) }); toast('已清空 ' + id); await load(); }
+  catch (err) { toast('失败：' + err.message, true); e.target.disabled = false; }
+});
+$('clearAll').addEventListener('click', async () => {
+  if (!confirm('清空全部会话？当前对话上下文会丢。')) return;
+  try { const r = await api('/api/sessions', { method:'POST', headers: headers(true), body: JSON.stringify({ all:true }) });
+    toast('已清空 ' + r.cleared + ' 个会话'); load.filled = false; await load(); }
+  catch (e) { toast('失败：' + e.message, true); }
+});
+$('apikey').value = localStorage.getItem('wb-relay-key') || '';
+$('apikey').addEventListener('change', () => localStorage.setItem('wb-relay-key', key()));
+
+$('relocate').addEventListener('click', async () => {
+  const btn = $('relocate');
+  btn.disabled = true;
+  $('relocateMsg').textContent = '正在重新查找（会按盘符遍历，最多十几秒）…';
+  $('relocateMsg').className = 'muted';
+  try{
+    const r = await api('/api/locate', { method:'POST', headers: headers(true), body: '{}' });
+    $('relocateMsg').textContent = '找到：' + r.cliJs + '（来源：' + r.source + '）';
+    $('relocateMsg').className = 'saved';
+    load.filled = false;
+    await load();
+  }catch(e){
+    $('relocateMsg').textContent = '没找到：' + e.message;
+    $('relocateMsg').className = 'hint';
+  }finally{ btn.disabled = false; }
+});
+
+load();
+setInterval(() => { if (!$('msearch').matches(':focus')) load(); }, 5000);
+</script>
+</body>
+</html>
