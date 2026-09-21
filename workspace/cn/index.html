@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的主页</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 48px;
+      max-width: 480px;
+      width: 90%;
+      text-align: center;
+    }
+
+    .avatar {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      font-size: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+
+    h1 { font-size: 28px; margin-bottom: 8px; }
+
+    .subtitle { color: #888; margin-bottom: 24px; }
+
+    .btn {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 32px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    #greeting { margin-top: 20px; color: #667eea; min-height: 24px; }
+
+    footer { margin-top: 32px; font-size: 12px; color: #bbb; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="avatar">你</div>
+    <h1>你好，世界！</h1>
+    <p class="subtitle">这是我的第一个网页</p>
+    <button class="btn" id="helloBtn">点我打招呼</button>
+    <p id="greeting"></p>
+    <footer>© 2026 我的主页</footer>
+  </div>
+
+  <script>
+    const greetings = ['你好！', '今天也要加油！', '欢迎光临！', '祝你开心每一天！'];
+    let index = 0;
+
+    document.getElementById('helloBtn').addEventListener('click', () => {
+      document.getElementById('greeting').textContent = greetings[index];
+      index = (index + 1) % greetings.length;
+    });
+  </script>
+</body>
+</html>

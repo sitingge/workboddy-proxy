@@ -1,0 +1,40 @@
+{
+  "listen": {
+    "host": "127.0.0.1",
+    "port": 8802
+  },
+  "apiKeys": [],
+  "cli": {
+    "cwd": "C:\\Users\\q2517\\WorkBuddy\\2026-09-21-16-39-15\\workboddy-proxy\\workboddy-proxy-save\\test\\workspace",
+    "verbose": false,
+    "allowTools": false,
+    "partialMessages": true
+  },
+  "sites": {
+    "mode": "cn",
+    "cn": {
+      "cliJs": "C:\\Users\\q2517\\WorkBuddy\\2026-09-21-16-39-15\\workboddy-proxy\\workboddy-proxy-save\\test\\fake-cli.js",
+      "home": "",
+      "model": ""
+    },
+    "intl": {
+      "cliJs": "",
+      "home": "",
+      "model": ""
+    }
+  },
+  "sessions": {
+    "maxWorkers": 4,
+    "idleMs": 60000,
+    "turnTimeoutMs": 30000,
+    "keepAliveHintMs": 15000,
+    "prewarm": false
+  },
+  "models": [
+    "workbuddy-auto"
+  ],
+  "disguise": {
+    "enabled": true,
+    "serverHeader": ""
+  }
+}

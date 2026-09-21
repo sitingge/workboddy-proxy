@@ -1,0 +1,59 @@
+{
+  "listen": {
+    "host": "0.0.0.0",
+    "port": 8790,
+    "publicBaseUrl": "",
+    "lanBaseUrl": "",
+    "trustedOrigins": []
+  },
+  "apiKeys": [],
+  "cli": {
+    "nodeExe": "",
+    "cliJs": "",
+    "cwd": "",
+    "verbose": true,
+    "allowTools": true,
+    "allowedTools": "AskUserQuestion,ExitPlanMode,Glob,Grep,ListMcpResources,Read,ReadMcpResource,TaskGet,TaskList,TaskOutput,TaskStop,ToolSearch,WebFetch,WebSearch,Edit,NotebookEdit,Write,Agent,Agent,Bash,DeferExecuteTool,EnterPlanMode,ImageGen,PowerShell,SendMessage,Skill,StructuredOutput,TaskCreate,TaskUpdate,TeamCreate,TeamDelete,VideoGen,WeChatReply,WeComReply,Artifact,ArtifactControl,ComputerUse,CronCreate,CronDelete,CronList,DelegateTool,EnterWorktree,ImageEdit,KillShell,LeaveWorktree,LSP,Monitor,PushNotification,REPL,ReportFindings,SendUserMessage,SkillManage,SlashCommand,WaitForMcpServers,Workflow",
+    "systemPrompt": "",
+    "model": ""
+  },
+  "sites": {
+    "mode": "auto",
+    "cn": {
+      "cliJs": "",
+      "home": "",
+      "model": ""
+    },
+    "intl": {
+      "cliJs": "",
+      "home": "",
+      "model": ""
+    }
+  },
+  "sessions": {
+    "maxWorkers": 4,
+    "idleMs": 1800000,
+    "turnTimeoutMs": 900000,
+    "keepAliveHintMs": 15000,
+    "prewarm": true
+  },
+  "models": [
+    "workbuddy-auto"
+  ],
+  "thinking": {
+    "pace": true,
+    "maxChunk": 12,
+    "tickMs": 18,
+    "burstThreshold": 40
+  },
+  "openai": {
+    "reasoningField": "reasoning_content"
+  },
+  "anthropic": {
+    "enabled": true
+  },
+  "disguise": {
+    "enabled": false,
+    "serverHeader": ""
+  }
+}
